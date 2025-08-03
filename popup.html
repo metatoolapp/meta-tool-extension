@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Tool</title>
+    <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="vendor/fontawesome/css/all.min.css" rel="stylesheet" />
+    <script src="vendor/tailwind/tailwindcss.js"></script>
+    <style>
+        :root {
+            --bg-color-light: #f0f2f5; --bg-color-dark: #1a202c;
+            --text-color-light: #333; --text-color-dark: #e2e8f0;
+            --card-bg-light: #fff; --card-bg-dark: #2d3748;
+            --border-color-light: #e2e8f0; --border-color-dark: #4a5568;
+            --header-bg-start-light: #5b21b6; --header-bg-end-light: #4c1d95;
+            --header-bg-start-dark: #4c1d95; --header-bg-end-dark: #3730a3;
+            --sidebar-bg-start-light: #5b21b6; --sidebar-bg-end-light: #4c1d95;
+            --sidebar-bg-start-dark: #4c1d95; --sidebar-bg-end-dark: #3730a3;
+            --base-font-size: 14px; --table-cell-padding: 0.5rem;
+        }
+        body { width: 1000px; height: 600px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color-light); color: var(--text-color-light); font-size: var(--base-font-size); transition: background-color 0.3s ease, color 0.3s ease, font-size 0.2s ease; }
+        body.fullscreen-mode { width: 100vw; height: 100vh; }
+        body.dark-mode { background-color: var(--bg-color-dark); color: var(--text-color-dark); }
+        body.dark-mode #app-content { background-color: var(--card-bg-dark); }
+        body.dark-mode .table thead th { background-color: var(--border-color-dark); color: var(--text-color-dark); }
+        body.dark-mode .table tbody tr,
+        body.dark-mode .table tbody tr:nth-child(even) { background-color: #365314; }
+        body.dark-mode .table tbody tr:hover { background-color: #1a2e05; }
+        body.dark-mode .header-gradient { background: linear-gradient(90deg, var(--header-bg-start-dark), var(--header-bg-end-dark)); }
+        body.dark-mode .user-gradient { background: linear-gradient(90deg, #4a5568, #6b7280); color: var(--text-color-dark); }
+        body.dark-mode .pagination-controls { background-color: var(--card-bg-dark); border-top-color: var(--border-color-dark); }
+        body.dark-mode .pagination-controls button { border-color: var(--border-color-dark); background-color: var(--card-bg-dark); color: var(--text-color-dark); }
+        body.dark-mode .pagination-controls button:hover { background-color: #4a5568; }
+        body.dark-mode .pagination-controls button.active { background-color: #a78bfa; color: white; border-color: #a78bfa; }
+        body.dark-mode .action-select { background-color: var(--card-bg-dark); color: var(--text-color-dark); border-color: var(--border-color-dark); }
+        body.dark-mode .modal-content { background-color: var(--card-bg-dark); color: var(--text-color-dark); }
+        body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: var(--border-color-dark); }
+        body.dark-mode .form-control, body.dark-mode .form-select { background-color: #4a5568; color: var(--text-color-dark); border-color: var(--border-color-dark); }
+        body.dark-mode .form-control::placeholder { color: #a0aec0; }
+        body.dark-mode .text-slate-600, body.dark-mode .text-slate-700 { color: var(--text-color-dark); }
+        body.dark-mode .text-slate-500 { color: #a0aec0; }
+        body.dark-mode .border-slate-300, body.dark-mode .border-slate-200 { border-color: var(--border-color-dark); }
+        body.dark-mode .bg-white { background-color: var(--card-bg-dark); }
+        body.dark-mode .hover\:bg-slate-50:hover { background-color: #4a5568; }
+        body.dark-mode .status-filter-btn-group button { background-color: #374151; border-color: #4a5568; color: #d1d5db; }
+        body.dark-mode .status-filter-btn-group button:hover { background-color: #4b5568; }
+        body.dark-mode .status-filter-btn-group button.active { background-color: #a78bfa; color: white; border-color: #a78bfa; }
+        #app-container { height: 100%; width: 100%; display: flex; box-sizing: border-box; }
+        #sidebar { width: 250px; min-width: 250px; background: linear-gradient(180deg, var(--sidebar-bg-start-light), var(--sidebar-bg-end-light)); color: white; display: flex; flex-direction: column; padding: 1rem; box-shadow: 2px 0 5px rgba(0,0,0,0.2); transition: all 0.3s ease-in-out; z-index: 20; }
+        body.dark-mode #sidebar { background: linear-gradient(180deg, var(--sidebar-bg-start-dark), var(--sidebar-bg-end-dark)); }
+        #sidebar.collapsed { width: 0; min-width: 0; padding: 0; overflow: hidden; }
+        #sidebar-toggle-header { background-color: transparent; color: white; border: none; border-radius: 0.25rem; padding: 0.5rem; cursor: pointer; transition: background-color 0.2s ease; }
+        #sidebar-toggle-header:hover { background-color: rgba(255,255,255,0.1); }
+        #sidebar-nav a { display: flex; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 500; transition: background-color 0.2s ease, color 0.2s ease; }
+        #sidebar-nav a:hover { background-color: rgba(255,255,255,0.1); color: white; }
+        #sidebar-nav a.active { background-color: rgba(255,255,255,0.2); color: white; }
+        #sidebar-nav a i { margin-right: 0.75rem; font-size: 1.1rem; width: 20px; text-align: center; }
+        #app-main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; transition: margin-left 0.3s ease; }
+        #app-content { height: 100%; width: 100%; display: flex; flex-direction: column; background-color: var(--card-bg-light); overflow: hidden; }
+        .header-gradient { background: linear-gradient(90deg, var(--header-bg-start-light), var(--header-bg-end-light)); }
+        .user-gradient { background: linear-gradient(90deg, #6d28d9, #8b5cf6); border-radius: 9999px; padding: 2px 12px 2px 2px; }
+        .tab-content { display: flex; flex-direction: column; height: 100%; }
+        .table-container { overflow: auto; flex-grow: 1; min-height: 0; }
+        .table thead th { background-color: #f1f5f9; font-weight: 600; position: sticky; top: 0; z-index: 10; cursor: pointer; }
+
+        /* --- START: ĐÃ SỬA MÀU NỀN BẢNG --- */
+        #app-content .table tbody tr,
+        #app-content .table tbody tr:nth-child(even) { /* Áp dụng màu đồng nhất cho cả hàng chẵn và lẻ */
+            background-color: #365314; /* Màu xanh lá cây đậm (lime-900) */
+            color: white;
+            font-weight: 500;
+        }
+        #app-content .table tbody tr:hover {
+            background-color: #1a2e05; /* Màu tối hơn nữa khi di chuột qua (lime-950) */
+        }
+        /* --- END: ĐÃ SỬA MÀU NỀN BẢNG --- */
+
+        #app-content .table tbody tr td a { color: #a3e635; text-decoration: underline; }
+        #app-content .table tbody tr td .status-DIE, #app-content .table tbody tr td .status-vo-hieu-hoa { color: #fca5a5 !important; }
+        #app-content .table tbody tr td .status-LIVE, #app-content .table tbody tr td .status-ACTIVE { color: #86efac !important; }
+        #app-content .table tbody tr td .status-PAUSED { color: #fcd34d !important; }
+        .table td, .table th { white-space: nowrap; padding: var(--table-cell-padding); }
+        .table th:nth-child(1), .table td:nth-child(1) { width: 40px; } .table th:nth-child(2), .table td:nth-child(2) { width: 50px; } .table th:nth-child(3), .table td:nth-child(3) { width: 150px; } .table th:nth-child(4), .table td:nth-child(4) { min-width: 80px; }
+        .table th.col-name, .table td.col-name { min-width: 250px; } .table th.col-id, .table td.col-id { min-width: 200px; } .table th.col-message, .table td.col-message { min-width: 250px; }
+        .table tbody tr.selected { background-color: #a78bfa !important; color: white !important; }
+        .table th.selected-col, .table td.selected-col { background-color: #e0e7ff !important; }
+        body.dark-mode .table th.selected-col, body.dark-mode .table td.selected-col { background-color: #4338ca !important; }
+        .status-DIE, .status-vo-hieu-hoa, .status-da-dong, .status-UNPUBLISHED, .status-vô-hiệu-hóa { color: #ef4444; font-weight: 600; }
+        .status-LIVE, .status-ACTIVE, .status-hoat-dong, .status-PUBLISHED, .status-hoạt-động { color: #22c55e; font-weight: 600; }
+        .status-INACTIVE, .status-PAUSED { color: #f59e0b; font-weight: 600; }
+        .status-PENDING_CLOSURE, .status-chua-thanh-toan, .status-dang-cho-dong, .status-chưa-thanh-toán, .status-đang-chờ-xem-xét, .status-trong-thời-gian-gia-hạn, .status-đang-chờ-thanh-toán { color: #f97316; font-weight: 600; }
+        .action-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+        .pagination-controls { padding: 8px; display: flex; justify-content: center; align-items: center; gap: 5px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
+        .pagination-controls button { border: 1px solid #cbd5e1; background-color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .pagination-controls button:hover { background-color: #f1f5f9; }
+        .pagination-controls button.active { background-color: #6d28d9; color: white; border-color: #6d28d9; }
+        .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #statistics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; padding: 1rem; overflow-y: auto; }
+        .stat-card { background-color: var(--card-bg-light); border: 1px solid var(--border-color-light); border-radius: 0.5rem; padding: 1rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        body.dark-mode .stat-card { background-color: var(--card-bg-dark); border-color: var(--border-color-dark); }
+        .stat-card-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .stat-card-body { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+        .stat-card-chart { width: 80px; height: 80px; position: relative; }
+        .stat-card-info { flex-grow: 1; }
+        .stat-card-info p { margin: 0.25rem 0; font-size: 0.9em; }
+        .stat-card-total { font-size: 1.5rem; font-weight: 700; }
+        .copy-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; line-height: 1; }
+        .status-filter-btn-group button { padding: 0.25rem 0.75rem; font-size: 0.8rem; border: 1px solid #d1d5db; background-color: #fff; border-radius: 0.375rem; transition: all 0.2s; }
+        .status-filter-btn-group button:hover { background-color: #f3f4f6; }
+        .status-filter-btn-group button.active { background-color: #6d28d9; color: white; border-color: #6d28d9; }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <nav id="sidebar">
+            <div class="text-xl font-bold mb-6 text-center">Menu</div>
+            <div id="sidebar-nav" class="flex flex-col flex-grow">
+                <a href="#bm" class="active" title="Quản lý BM"><i class="fa-solid fa-briefcase"></i> BM</a>
+                <a href="#ad-accounts" title="Quản lý Tài khoản quảng cáo"><i class="fa-solid fa-dollar-sign"></i> TKQC</a>
+                <a href="#campaigns" title="Quản lý Chiến dịch"><i class="fa-solid fa-bullhorn"></i> Chiến dịch</a>
+                <a href="#page" title="Quản lý Page"><i class="fa-solid fa-file-alt"></i> PAGE</a>
+                <a href="#pixel" title="Quản lý Pixel"><i class="fa-solid fa-chart-pie"></i> PIXEL</a>
+                <a href="#statistics" title="Thống kê tổng quan"><i class="fa-solid fa-chart-line"></i> Thống kê</a>
+            </div>
+        </nav>
+
+        <div id="app-main-content">
+            <div id="app-content">
+                <header class="header-gradient text-white flex items-center justify-between px-4 h-14 shrink-0">
+                    <div class="flex items-center gap-4">
+                        <button id="sidebar-toggle-header" title="Đóng/Mở Sidebar"><i class="fa-solid fa-bars"></i></button>
+                        <div class="text-2xl font-bold">Meta Tool</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1 border border-white/20 rounded-md p-0.5 bg-white/10">
+                             <button id="settings-btn" class="px-2 py-1 border-none rounded-md text-white hover:bg-white/20 flex items-center" title="Cài đặt"><i class="fa-solid fa-gear"></i></button>
+                             <button id="toggle-dark-mode" class="px-2 py-1 border-none rounded-md text-white hover:bg-white/20 flex items-center" title="Chế độ Sáng/Tối"><i class="fa-solid fa-moon"></i></button>
+                             <button id="zoom-out" class="px-2 py-1 border-none rounded-md text-white hover:bg-white/20 flex items-center" title="Thu nhỏ Tool"><i class="fa-solid fa-search-minus"></i></button>
+                             <button id="zoom-in" class="px-2 py-1 border-none rounded-md text-white hover:bg-white/20 flex items-center" title="Phóng to Tool"><i class="fa-solid fa-search-plus"></i></button>
+                             <button id="fullscreen-btn" class="px-2 py-1 border-none rounded-md text-white hover:bg-white/20 flex items-center" title="Mở toàn màn hình"><i class="fa-solid fa-expand"></i></button>
+                        </div>
+                        <div id="user-info-container" class="user-gradient items-center gap-2 hidden md:flex">
+                            <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center text-purple-600 font-bold" id="user-avatar">?</div>
+                            <span id="user-name">Chưa đăng nhập</span>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="flex-grow flex flex-col overflow-hidden" style="background-color: #4c1d95; padding: 10px 10px 10px 10px;">
+                    <div class="bg-white border-b border-slate-200 px-4 py-2 flex flex-wrap items-center justify-between gap-3 shrink-0 rounded-t-lg">
+                        <div class="flex items-start gap-4">
+                             <div class="relative">
+                                <input type="text" id="search-input" placeholder="Tìm kiếm trong bảng..." class="form-input px-3 py-1.5 border border-slate-300 rounded-md w-64 focus:ring-purple-500 focus:border-purple-500 transition duration-150 ease-in-out sm:text-sm sm:leading-5">
+                                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            </div>
+                            <div id="status-filter-container" class="flex items-center gap-2 status-filter-btn-group"></div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                             <div id="copy-buttons-container" class="flex items-center gap-2"></div>
+                             <button id="refresh-all" class="px-3 py-1.5 border border-slate-300 rounded-md bg-white hover:bg-slate-50" title="Tải lại dữ liệu tab hiện tại"><i class="fa-solid fa-rotate-right text-slate-600"></i></button>
+                            <div class="flex items-center border border-slate-300 rounded-md">
+                                <button id="move-row-up" class="px-2 py-1.5 hover:bg-slate-50 rounded-l-md" title="Di chuyển hàng đã chọn lên"><i class="fa-solid fa-chevron-up text-slate-600"></i></button>
+                                <button id="move-row-down" class="px-2 py-1.5 hover:bg-slate-50 border-l border-slate-300" title="Di chuyển hàng đã chọn xuống"><i class="fa-solid fa-chevron-down text-slate-600"></i></button>
+                                <button id="move-col-left" class="px-2 py-1.5 hover:bg-slate-50 border-l border-slate-300" title="Di chuyển cột đã chọn sang trái"><i class="fa-solid fa-arrow-left text-slate-600"></i></button>
+                                <button id="move-col-right" class="px-2 py-1.5 hover:bg-slate-50 border-l border-slate-300 rounded-r-md" title="Di chuyển cột đã chọn sang phải"><i class="fa-solid fa-arrow-right text-slate-600"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <main id="tab-content-wrapper" class="flex-grow flex flex-col overflow-hidden bg-slate-100 rounded-b-lg">
+                        <div id="bm" class="tab-content">
+                            <div class="table-container p-2 bg-white shadow-sm">
+                                <table id="bmTable" class="table"><thead><tr><th><input type="checkbox" class="select-all"></th><th>Stt</th><th>Hành động</th><th>Process</th><th class="col-message">Message</th><th>Trạng thái</th><th class="col-name">Tên BM</th><th class="col-id">ID BM</th><th>Loại</th><th>Quyền</th><th>SL TKQC</th><th>SL Page</th><th>SL Admin</th><th>Ngày tạo</th><th>Ngày Die</th><th>XMDN</th></tr></thead><tbody id="bmTableBody"></tbody></table>
+                            </div>
+                            <div id="bm-pagination" class="pagination-controls"></div>
+                        </div>
+                        <div id="page" class="tab-content hidden">
+                            <div class="table-container p-2 bg-white shadow-sm">
+                                <table id="pageTable" class="table"><thead><tr><th><input type="checkbox" class="select-all"></th><th>Stt</th><th>Hành động</th><th>Process</th><th class="col-message">Message</th><th>Trạng thái</th><th class="col-name">Tên Page</th><th class="col-id">ID Page</th><th>Category</th><th>Lượt thích</th><th>Thuộc BM</th><th>Thời gian tạo</th></tr></thead><tbody id="pageTableBody"></tbody></table>
+                            </div>
+                            <div id="page-pagination" class="pagination-controls"></div>
+                        </div>
+                        <div id="ad-accounts" class="tab-content hidden">
+                            <div class="table-container p-2 bg-white shadow-sm">
+                                <table id="adAccountsTable" class="table"><thead><tr><th><input type="checkbox" class="select-all"></th><th>Stt</th><th>Trạng thái</th><th>Hành Động</th><th>Process</th><th class="col-message">Message</th><th class="col-id">ID</th><th>Chủ sở hữu</th><th class="col-name">Tên TKQC</th><th>Số dư</th><th>Ngưỡng</th><th>Giới Hạn</th><th>Đã chi tiêu</th><th>QTV</th><th>Tiền tệ</th><th>Loại TK</th><th>Quyền</th></tr></thead><tbody id="adAccountsTableBody"></tbody></table>
+                            </div>
+                            <div id="ad-accounts-pagination" class="pagination-controls"></div>
+                        </div>
+                        <div id="campaigns" class="tab-content hidden">
+                            <div class="table-container p-2 bg-white shadow-sm">
+                                <h4 class="font-bold text-slate-700 mb-3">Chiến dịch <span id="all-campaigns-total-spend" class="text-sm text-slate-500 ml-3"></span></h4>
+                                <table id="campaignsTable" class="table"><thead><tr><th><input type="checkbox" class="select-all"></th><th>Stt</th><th>Hành động</th><th>Process</th><th>Trạng thái</th><th class="col-name">Tên Chiến dịch</th><th class="col-id">ID</th><th>Mục tiêu</th><th>Ngân sách</th><th>Tổng chi tiêu</th><th>CTR</th><th>CPM</th><th>Thuộc TKQC</th><th class="col-message">Message</th></tr></thead><tbody id="campaignsTableBody"></tbody></table>
+                            </div>
+                            <div id="campaigns-pagination" class="pagination-controls"></div>
+                        </div>
+                        <div id="pixel" class="tab-content hidden">
+                            <div class="table-container p-2 bg-white shadow-sm">
+                                <table id="pixelTable" class="table"><thead><tr><th><input type="checkbox" class="select-all"></th><th>Stt</th><th>Hành động</th><th>Process</th><th class="col-message">Message</th><th>Trạng thái</th><th class="col-name">Tên Pixel</th><th class="col-id">ID Pixel</th><th>Thời gian tạo</th><th>Lần cuối kích hoạt</th><th>Thuộc về</th></tr></thead><tbody id="pixelTableBody"></tbody></table>
+                            </div>
+                            <div id="pixel-pagination" class="pagination-controls"></div>
+                        </div>
+                        <div id="statistics" class="tab-content hidden">
+                            <div id="statistics-grid"></div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Đang xác thực...</h5></div><div class="modal-body text-center"><div class="spinner-border text-primary mb-3"></div><p>Đang tự động lấy token từ trang Facebook...</p></div></div></div></div>
+    <div class="modal fade" id="customMessageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="customMessageModalLabel">Thông báo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="customMessageModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button></div></div></div></div>
+    <div class="modal fade" id="taskModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="taskModalTitle">Thực hiện tác vụ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="taskModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="button" class="btn btn-primary" id="executeTaskBtn">Thực hiện</button></div></div></div></div>
+    <div class="modal fade" id="settingsModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Cài đặt hiển thị & API</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><h6 class="font-bold mb-3">Cài đặt hiển thị</h6><div class="mb-3"><label for="settings_rows_per_page" class="form-label">Số dòng mỗi trang (cho tất cả bảng):</label><input type="number" class="form-control" id="settings_rows_per_page" value="20" min="5" max="100"></div><div class="mb-3"><label for="columnSpacing" class="form-label">Khoảng cách giữa các cột: <span id="spacingValue" class="font-bold">0.5</span>rem</label><input type="range" class="form-range" id="columnSpacing" min="0.2" max="1.5" step="0.05" value="0.5"></div><h6 class="font-bold mb-3 mt-4">Cài đặt API & Luồng</h6><div class="mb-3"><label for="captchaProvider" class="form-label">Nhà cung cấp Captcha:</label><select class="form-select mb-2" id="captchaProvider"><option value="2captcha.com">2captcha.com</option><option value="anticaptcha.top">anticaptcha.top</option></select><input class="form-control" id="apiCaptchaKey" placeholder="Nhập API Key Captcha" /></div><div class="mb-3"><label for="simProvider" class="form-label">Nhà cung cấp OTP (SIM):</label><select class="form-select mb-2" id="simProvider"><option value="viotp.com">viotp.com</option><option value="sim24.cc">sim24.cc</option></select><input class="form-control" id="apiSimKey" placeholder="Nhập API Key SIM" /></div><div class="mb-3"><label for="mailProvider" class="form-label">Nhà cung cấp Mail (cho Backup BM):</label><select class="form-select mb-2" id="mailProvider"><option value="fviainboxs.com">fviainboxs.com</option><option value="mail1s.net">mail1s.net</option></select><input class="form-control" id="apiMailKey" placeholder="Nhập API Key Mail" /></div><div class="mb-3"><label for="maxConcurrentTasks" class="form-label">Số luồng tối đa:</label><input type="number" class="form-control" id="maxConcurrentTasks" value="5" min="1" max="100"><small class="form-text text-muted">Số tác vụ tối đa chạy song song.</small></div><div class="mb-3"><label for="taskLoopCount" class="form-label">Số lần lặp mỗi tác vụ:</label><input type="number" class="form-control" id="taskLoopCount" value="1" min="1" max="100"><small class="form-text text-muted">Số lần mỗi tác vụ sẽ được lặp lại cho mỗi mục.</small></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="button" class="btn btn-primary" id="saveSettingsBtn">Lưu cài đặt</button></div></div></div></div>
+    <div class="modal fade" id="helpModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Hướng dẫn lấy Access Token Facebook</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Cách tốt nhất để lấy Access Token là nhấn vào nút "Lấy Token từ trang Facebook" khi bạn đang mở một trang bất kỳ trong Trình quản lý kinh doanh (business.facebook.com).</p><p>Nếu cách trên không hoạt động, bạn có thể thử cách thủ công:</p><ol class="list-decimal list-inside"><li>Truy cập trang <a href="https://business.facebook.com/content_management" target="_blank" class="text-blue-500 hover:underline">Trình quản lý nội dung</a>.</li><li>Nhấn chuột phải vào bất kỳ đâu trên trang, chọn <strong>Inspect</strong> (Kiểm tra) hoặc nhấn phím <strong>F12</strong>.</li><li>Chuyển qua tab <strong>Console</strong>.</li><li>Dán đoạn mã sau vào Console và nhấn Enter: <br><code class="bg-slate-200 dark:bg-slate-700 p-1 rounded text-sm">/EAAG/.exec(document.body.innerHTML)[0]</code></li><li>Một chuỗi ký tự bắt đầu bằng "EAAG..." sẽ hiện ra. Đó chính là Access Token của bạn. Hãy sao chép toàn bộ chuỗi đó.</li></ol><p class="mt-3 text-red-500"><strong>Lưu ý:</strong> Không bao giờ chia sẻ Access Token của bạn với bất kỳ ai mà bạn không tin tưởng.</p></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button></div></div></div></div>
+<div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+    <div class="modal-content user-profile-modal-content" style="background-color: #f7f7f7; border-radius: 15px;">
+      <div class="modal-body text-center p-4">
+        <img id="modal-user-avatar-img" src="" class="rounded-circle mb-3" style="width: 90px; height: 90px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h5 class="modal-title fw-bold" id="modal-user-name"></h5>
+        <p class="text-muted" id="modal-user-uid"></p>
+        <div class="mb-3">
+            <span class="badge bg-success" id="modal-user-status" style="font-size: 0.9em; padding: 0.5em 1em;">Live Ads - Không Sao Cả</span>
+        </div>
+        <ul class="list-group list-group-flush text-start mt-4">
+          <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-1" style="background: transparent;">
+            <span class="text-muted"><i class="fa-solid fa-envelope me-2" style="width: 20px;"></i>Email:</span>
+            <strong id="modal-user-email"></strong>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-1" style="background: transparent;">
+            <span class="text-muted"><i class="fa-solid fa-calendar-days me-2" style="width: 20px;"></i>Ngày sinh:</span>
+            <strong id="modal-user-birthday"></strong>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-1" style="background: transparent;">
+            <span class="text-muted"><i class="fa-solid fa-user-friends me-2" style="width: 20px;"></i>Bạn bè:</span>
+            <strong id="modal-user-friends"></strong>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-1" style="background: transparent;">
+            <span class="text-muted"><i class="fa-solid fa-venus-mars me-2" style="width: 20px;"></i>Giới tính:</span>
+            <strong id="modal-user-gender"></strong>
+          </li>
+        </ul>
+        <div class="d-grid gap-2 mt-4">
+             <button class="btn btn-outline-danger" id="logoutBtnModal"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="vendor/chartjs/chart.umd.min.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
